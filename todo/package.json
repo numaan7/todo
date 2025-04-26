@@ -1,7 +1,7 @@
 {
   "name": "todo",
   "version": "0.1.0",
-   "homepage": "https://numaan7.github.io/react-todo-app",
+  "homepage": "https://numaan7.github.io/react-todo-app",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
@@ -11,11 +11,16 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "workbox-core": "^7.3.0",
+    "workbox-expiration": "^7.3.0",
+    "workbox-precaching": "^7.3.0",
+    "workbox-routing": "^7.3.0",
+    "workbox-strategies": "^7.3.0"
   },
   "scripts": {
     "predeploy": "npm run build",
-   "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
