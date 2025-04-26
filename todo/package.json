@@ -1,7 +1,7 @@
 {
   "name": "todo",
   "version": "0.1.0",
-   "homepage": "https://gitname.github.io/react-todo-app",
+   "homepage": "https://numaan7.github.io/react-todo-app",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
