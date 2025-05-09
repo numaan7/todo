@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -22,6 +22,7 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  padding: 20px;
 }
 
 .App-link {
@@ -34,5 +35,35 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Add some animated background elements for a more creative feel */
+.App-header::before {
+  content: "📌";
+  position: absolute;
+  top: 20px;
+  left: 10%;
+  font-size: 2rem;
+  opacity: 0.4;
+  animation: float 8s ease-in-out infinite;
+}
+
+.App-header::after {
+  content: "📝";
+  position: absolute;
+  bottom: 30px;
+  right: 15%;
+  font-size: 2rem;
+  opacity: 0.4;
+  animation: float 6s ease-in-out 1s infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
   }
 }

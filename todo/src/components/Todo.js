@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useReducer } from 'react';
 import './Todo.css';
 
 // Task item component optimized with memo
@@ -20,45 +20,88 @@ const TaskItem = memo(({ task, onToggle, onEdit, onDelete }) => {
       <button 
         onClick={onDelete}
         aria-label={`Delete task: ${task.text}`}
+        className="delete-btn"
       >
-        Delete
+        🗑️ Delete
       </button>
     </li>
   );
 });
 
+// Task reducer for better state management
+function tasksReducer(state, action) {
+  switch (action.type) {
+    case 'INIT':
+      return action.tasks;
+    case 'ADD':
+      return [...state, action.task];
+    case 'TOGGLE':
+      return state.map(task => 
+        task.id === action.id ? { ...task, completed: !task.completed } : task
+      );
+    case 'EDIT':
+      return state.map(task => 
+        task.id === action.id ? { ...task, text: action.text } : task
+      );
+    case 'DELETE':
+      return state.filter(task => task.id !== action.id);
+    default:
+      return state;
+  }
+}
+
 const Todo = () => {
-  // Load tasks from local storage on initial render
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
+  // Using reducer for complex state management
+  const [tasks, dispatch] = useReducer(tasksReducer, []);
   const [newTask, setNewTask] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load tasks from local storage on initial render
+  useEffect(() => {
+    try {
+      const loadTasks = () => {
+        setIsLoading(true);
+        const savedTasks = localStorage.getItem('tasks');
+        const parsedTasks = savedTasks ? JSON.parse(savedTasks) : [];
+        dispatch({ type: 'INIT', tasks: parsedTasks });
+        setIsLoading(false);
+      };
+      
+      loadTasks();
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+      setIsLoading(false);
+    }
+  }, []);
 
   // Save tasks to local storage whenever they change
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    if (!isLoading) {
+      try {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      } catch (error) {
+        console.error('Error saving tasks:', error);
+      }
+    }
+  }, [tasks, isLoading]);
 
   // Generate a unique ID for new tasks
-  const generateId = () => {
+  const generateId = useCallback(() => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  };
+  }, []);
 
   const addTask = useCallback(() => {
     if (newTask.trim()) {
-      setTasks(prevTasks => [
-        ...prevTasks, 
-        { 
-          id: generateId(), 
-          text: newTask.trim(), 
-          completed: false,
-          createdAt: new Date()
-        }
-      ]);
+      const task = { 
+        id: generateId(), 
+        text: newTask.trim(), 
+        completed: false,
+        createdAt: new Date()
+      };
+      dispatch({ type: 'ADD', task });
       setNewTask('');
     }
-  }, [newTask]);
+  }, [newTask, generateId]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter') {
@@ -68,46 +111,49 @@ const Todo = () => {
   }, [addTask]);
 
   const toggleTask = useCallback((id) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+    dispatch({ type: 'TOGGLE', id });
   }, []);
 
   const editTask = useCallback((id, newText) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? { ...task, text: newText } : task
-      )
-    );
+    dispatch({ type: 'EDIT', id, text: newText });
   }, []);
 
   const deleteTask = useCallback((id) => {
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+    dispatch({ type: 'DELETE', id });
   }, []);
+
+  // Show loading spinner while tasks are being loaded
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading your tasks...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="todo-container">
-      <h1>Todo List</h1>
+      <h1>✅ Todo List</h1>
       <div className="todo-input">
         <input
           type="text"
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Add a new task"
+          placeholder="✨ Add a new task"
           aria-label="Enter a new task"
         />
         <button 
           onClick={addTask}
           aria-label="Add task"
+          className="add-btn"
         >
-          Add
+          ➕ Add
         </button>
       </div>
       {tasks.length === 0 ? (
-        <p className="empty-state">No tasks yet. Add a task to get started!</p>
+        <p className="empty-state">📝 No tasks yet. Add a task to get started!</p>
       ) : (
         <ul className="todo-list" aria-label="Todo list">
           {tasks.map(task => (
@@ -123,7 +169,7 @@ const Todo = () => {
       )}
       {tasks.length > 0 && (
         <div className="task-summary">
-          <p>{tasks.filter(task => task.completed).length} of {tasks.length} tasks completed</p>
+          <p>🎯 {tasks.filter(task => task.completed).length} of {tasks.length} tasks completed {tasks.filter(task => task.completed).length === tasks.length && tasks.length > 0 ? '🎉' : '🚀'}</p>
         </div>
       )}
     </div>
